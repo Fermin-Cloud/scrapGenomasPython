@@ -1,52 +1,52 @@
-import asyncio
-import pandas as pd
 from playwright.async_api import async_playwright
 from typing import List, Dict
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+
+class GoogleSheetsClient:
+    def __init__(self, spreadsheet_id: str, range_name: str):
+        self.spreadsheet_id = spreadsheet_id
+        self.range_name = range_name
+        self.scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+        self.creds = Credentials.from_service_account_file("credentials.json", scopes=self.scopes)
+        self.service = build("sheets", "v4", credentials=self.creds)
+
+    def append_data(self, values: List[List[str]]):
+        body = {"values": values}
+        self.service.spreadsheets().values().append(
+            spreadsheetId=self.spreadsheet_id,
+            range=self.range_name,
+            valueInputOption="RAW",
+            body=body
+        ).execute()
 
 class Scraper:
-    def __init__(self, url: str):
+    def __init__(self, url: str, principios_activos: List[str]):
         self.url = url
         self.resultados: List[Dict[str, str]] = []
-        self.principios_activos = [
-            "Alpelisib",
-            "Fulvestrant",
-            "Inavolisib",
-            "Palbociclib",
-        ]
+        self.principios_activos = principios_activos
 
     async def iniciar_navegador(self):
-        """Inicia el navegador en modo headless."""
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
-        self.page.set_default_timeout(60000)  
+        self.page.set_default_timeout(60000)
 
     async def buscar_principio_activo(self, principio: str):
-        """Realiza la búsqueda y extrae los datos de la tabla."""
         print(f"Buscando principio activo: {principio}")
-
         await self.page.goto(self.url)
-
-        # Seleccionar el checkbox de "Principio Activo"
         await self.page.wait_for_selector("#ctl00_ContentPlaceHolder1_chkTipoBusqueda_1")
         await self.page.check("#ctl00_ContentPlaceHolder1_chkTipoBusqueda_1")
-
-        # Esperar y llenar el campo de texto
         await self.page.wait_for_selector("#ctl00_ContentPlaceHolder1_txtPrincipio")
         await self.page.fill("#ctl00_ContentPlaceHolder1_txtPrincipio", principio)
-
-        # Clic en el botón de búsqueda
         await self.page.click("#ctl00_ContentPlaceHolder1_btnBuscar")
-        await self.page.wait_for_load_state("networkidle")  # Esperar a que cargue la página
-
-        # Verificar si hay resultados
+        await self.page.wait_for_load_state("networkidle")
+        
         tabla_visible = await self.page.is_visible("#ctl00_ContentPlaceHolder1_gvDatosBusqueda")
-
         if not tabla_visible:
             print(f"No se encontraron resultados para: {principio}")
             return
-
-        # Extraer datos de la tabla
+        
         datos = await self.page.evaluate('''
             () => {
                 const rows = document.querySelectorAll("#ctl00_ContentPlaceHolder1_gvDatosBusqueda tbody tr");
@@ -68,31 +68,19 @@ class Scraper:
         print(f"Resultados obtenidos para: {principio}")
 
     async def ejecutar(self):
-        """Ejecuta el scraping para todos los principios activos."""
         await self.iniciar_navegador()
-
         for principio in self.principios_activos:
             await self.buscar_principio_activo(principio)
-
         await self.browser.close()
         await self.playwright.stop()
 
-        # Guardar los resultados en un CSV
-        self.generar_csv()
-
-    def generar_csv(self, archivo: str = "resultados.csv"):
-        """Genera un archivo CSV con los resultados obtenidos."""
+    def enviar_a_google_sheets(self, google_sheets_client: GoogleSheetsClient):
         if not self.resultados:
-            print("No hay resultados para guardar.")
+            print("No hay resultados para enviar.")
             return
         
-        df = pd.DataFrame(self.resultados)
-        df.to_csv(archivo, index=False, encoding="utf-8")
-        print(f"Archivo CSV generado: {archivo}")
+        valores = [[d["registro"], d["nombre"], d["fechaRegistro"], d["empresa"], d["principioActivo"], d["controlLegal"]] for d in self.resultados]
+        google_sheets_client.append_data(valores)
+        print("Datos enviados a Google Sheets")
 
-# Ejecutar el scraper
-async def main():
-    scraper = Scraper("https://registrosanitario.ispch.gob.cl/")
-    await scraper.ejecutar()
 
-asyncio.run(main())
