@@ -4,14 +4,14 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 class GoogleSheetsClient:
-    def __init__(self, spreadsheet_id: str, range_name: str):
-        self.spreadsheet_id = spreadsheet_id
-        self.range_name = range_name
+    def __init__(self, spreadsheet_id: str, range_name: str) -> None:
+        self.spreadsheet_id: str = spreadsheet_id
+        self.range_name: str = range_name
         self.scopes = ["https://www.googleapis.com/auth/spreadsheets"]
         self.creds = Credentials.from_service_account_file("credentials.json", scopes=self.scopes)
         self.service = build("sheets", "v4", credentials=self.creds)
 
-    def append_data(self, values: List[List[str]]):
+    def append_data(self, values: List[List[str]]) -> None:
         body = {"values": values}
         self.service.spreadsheets().values().append(
             spreadsheetId=self.spreadsheet_id,
@@ -21,18 +21,18 @@ class GoogleSheetsClient:
         ).execute()
 
 class Scraper:
-    def __init__(self, url: str, principios_activos: List[str]):
+    def __init__(self, url: str, principios_activos: List[str]) -> None:
         self.url = url
         self.resultados: List[Dict[str, str]] = []
         self.principios_activos = principios_activos
 
-    async def iniciar_navegador(self):
+    async def iniciar_navegador(self) -> None:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
         self.page.set_default_timeout(60000)
 
-    async def buscar_principio_activo(self, principio: str):
+    async def buscar_principio_activo(self, principio: str) -> None:
         print(f"Buscando principio activo: {principio}")
         await self.page.goto(self.url)
         await self.page.wait_for_selector("#ctl00_ContentPlaceHolder1_chkTipoBusqueda_1")
