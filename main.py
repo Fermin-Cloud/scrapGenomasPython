@@ -6,7 +6,6 @@ from services.scrap import GoogleSheetsClient, Scraper
 
 # Definir el alcance de los permisos
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-
 # ID de la hoja de cálculo
 SPREADSHEET_ID = "1VNzEOTnam34cY1rB7qVrlH7W3fj9InD2MG_HpIfWHWo"
 RANGE_NAME = "A1:Z100"
