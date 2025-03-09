@@ -24,7 +24,6 @@ def obtener_principios_guardados() -> Set[str]:
     # Extract the column of active ingredients (col 5)
     return {row[4].strip().lower() for row in values if len(row) > 4}
 
-
 async def main() -> None:
     """Run the scraping process if there are new active ingredients."""
     principios_activos: List[str] = [
