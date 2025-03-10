@@ -1,24 +1,9 @@
 from playwright.async_api import async_playwright
 from typing import List, Dict
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 
-class GoogleSheetsClient:
-    def __init__(self, spreadsheet_id: str, range_name: str) -> None:
-        self.spreadsheet_id: str = spreadsheet_id
-        self.range_name: str = range_name
-        self.scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-        self.creds = Credentials.from_service_account_file("credentials.json", scopes=self.scopes)
-        self.service = build("sheets", "v4", credentials=self.creds)
+from services.vinculate_google import GoogleSheetsClient
 
-    def append_data(self, values: List[List[str]]) -> None:
-        body = {"values": values}
-        self.service.spreadsheets().values().append(
-            spreadsheetId=self.spreadsheet_id,
-            range=self.range_name,
-            valueInputOption="RAW",
-            body=body
-        ).execute()
+# active substance
 
 class Scraper:
     def __init__(self, url: str, principios_activos: List[str]) -> None:
@@ -82,5 +67,9 @@ class Scraper:
         valores = [[d["registro"], d["nombre"], d["fechaRegistro"], d["empresa"], d["principioActivo"], d["controlLegal"]] for d in self.resultados]
         google_sheets_client.append_data(valores)
         print("Datos enviados a Google Sheets")
+
+    def get_result(self) -> List[Dict[str, str]]:
+        if self.resultados:
+            return self.resultados
 
 
