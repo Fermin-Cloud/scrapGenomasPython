@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Lista de bibliotecas a instalar
 libs=(
     "libwoff2-1"
     "libvpx6"
@@ -32,7 +31,6 @@ failed_libs="failed_libraries.log"
 # Limpiar el archivo de bibliotecas fallidas si ya existe
 > "$failed_libs"
 
-# Intentar instalar cada biblioteca
 for lib in "${libs[@]}"; do
     echo "Intentando instalar $lib..."
     if sudo apt-get install -y "$lib"; then
@@ -42,5 +40,4 @@ for lib in "${libs[@]}"; do
     fi
 done
 
-# Mostrar el resultado
 echo "El script ha terminado. Las bibliotecas que no se pudieron instalar están en $failed_libs."

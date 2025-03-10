@@ -71,5 +71,3 @@ class Scraper:
     def get_result(self) -> List[Dict[str, str]]:
         if self.resultados:
             return self.resultados
-
-
