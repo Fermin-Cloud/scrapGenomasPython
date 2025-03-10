@@ -1,0 +1,4 @@
+__pycache__/
+resultados.csv
+.env
+credentials.json
