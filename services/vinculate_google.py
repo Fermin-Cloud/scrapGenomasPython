@@ -36,3 +36,7 @@ class GoogleSheetsClient:
         valid_rows = [row for row in values if len(row) > 4 and row[4].strip()]
         
         return valid_rows
+
+    def query(self) -> str: 
+        self.conecct
+        return "response api "
