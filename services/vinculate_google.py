@@ -11,7 +11,7 @@ class GoogleSheetsClient:
         self.service = build("sheets", "v4", credentials=self.creds)
 
     def append_data(self, values: List[List[str]]) -> None:
-        """Añade datos a Google Sheets."""
+        """Appends data to Google Sheets."""
 
         body = {"values": values}
         self.service.spreadsheets().values().append(
@@ -21,22 +21,32 @@ class GoogleSheetsClient:
             body=body
         ).execute()
 
+    def get_all_data(self) -> List[List[str]]:
+        """Gets all data from the spreadsheet within the specified range."""
+        result = self.service.spreadsheets().values().get(
+            spreadsheetId=self.spreadsheet_id,
+            range=self.range_name
+        ).execute()
+        
+        # If no data exists, return an empty list
+        return result.get('values', [])
+
     def obtener_principios_guardados(self) -> List[List[str]]:
-        """Lee los datos desde Google Sheets y retorna las líneas completas de los principios activos almacenados."""
+        """Reads the data from Google Sheets and returns the complete rows of stored active ingredients."""
         
         sheet = self.service.spreadsheets()
         result = sheet.values().get(spreadsheetId=self.spreadsheet_id, range=self.range_name).execute()
         values = result.get("values", [])
 
         if not values:
-            print("No se encontraron datos en Google Sheets.")
+            print("No data found in Google Sheets.")
             return []
 
-        # Filtrar filas con datos en la columna de principios activos (columna 5)
+        # Filter rows with data in the active ingredient column (column 5)
         valid_rows = [row for row in values if len(row) > 4 and row[4].strip()]
         
         return valid_rows
 
-    def query(self) -> str: 
-        self.conecct
-        return "response api "
+    def query(self) -> str:
+        self.connect()
+        return "API response"

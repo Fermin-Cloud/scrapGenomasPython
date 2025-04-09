@@ -5,7 +5,7 @@ from typing import List
 class FileManager:
     """Clase para manejar archivos locales en formato CSV."""
     
-    def __init__(self, archivo: str = "principios_activos_local.csv"):
+    def __init__(self, archivo: str = "./downloads/local.csv"):
         self.archivo = archivo
 
     def archivo_existe(self) -> bool:
